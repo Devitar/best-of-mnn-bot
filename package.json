@@ -1,0 +1,11 @@
+{
+  "name": "best-of-mnn-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:Devitar/best-of-mnn-bot.git",
+  "author": "Devitar <devin.curtis1210@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^13.6.0"
+  }
+}
