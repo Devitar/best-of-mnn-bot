@@ -5,6 +5,12 @@
   "repository": "git@github.com:Devitar/best-of-mnn-bot.git",
   "author": "Devitar <devin.curtis1210@gmail.com>",
   "license": "MIT",
+  "engines": {
+    "node": "16.x"
+  },
+  "scripts": {
+    "start": "node main.js"
+  },
   "dependencies": {
     "discord.js": "^13.6.0",
     "dotenv": "^16.0.0"

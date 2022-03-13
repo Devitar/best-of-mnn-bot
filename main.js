@@ -1,4 +1,4 @@
-/** Package for environment variables usage */
+/** Package for environment variables usage in local testing */
 require('dotenv').config()
 
 /** Discord client */
@@ -15,41 +15,63 @@ const client = new Client({
 
 /** Constants */
 const LISTEN_TO_CHANNEL_IDS = [
-    202312233856925697, // Memes channel
-    619747193653297152, // Bot channel
+    "202312233856925697", // Memes channel
+    // "619747193653297152", // Bot channel
 ]
+const HALL_OF_FAME_CHANNEL_ID = "952356642941435945"
+const ASCENDED_MESSAGE_IDS = [] // Messages that have already ascended to godhood (Posted in HoF channel)
 
 /** Events */
-client.on("ready", () => {
+client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}!`)
-})
 
-client.on('messageReactionAdd', async reaction => {
-    if (reaction.partial) {
-        try {
-            await reaction.fetch()
-        } catch (error) {
-            console.error('Something went wrong when fetching the message:', error)
+    const HALL_OF_FAME_CHANNEL = await client.channels.fetch(HALL_OF_FAME_CHANNEL_ID)
 
-            return
+    // Populate ASCENDED_MESSAGE_IDS
+    await HALL_OF_FAME_CHANNEL.messages.fetch().then(messages => {
+        console.log(`Fetched ${messages.size} existing godly memes from HoF channel.`)
+
+        messages.forEach(message => {
+            const originalMessageId = message.content.match(/(?<=\{)(.*?)(?=\})/)[0]
+            ASCENDED_MESSAGE_IDS.push(originalMessageId)
+        })
+    })
+
+    console.log(`Bot listening for message reactions...`)
+
+    client.on('messageReactionAdd', async reaction => {
+        if (reaction.partial) {
+            try {
+                await reaction.fetch()
+            } catch (error) {
+                console.error('Something went wrong when fetching the message:', error)
+
+                return
+            }
         }
-    }
 
-    const msg = reaction.message
+        const msg = reaction.message
 
-    if (!LISTEN_TO_CHANNEL_IDS.includes(msg.channelId)) return
+        // Ignore reactions to messages from non-included channels or messages that have already ascended
+        if (
+            !LISTEN_TO_CHANNEL_IDS.includes(msg.channelId) ||
+            ASCENDED_MESSAGE_IDS.includes(msg.id)
+        ) return
 
-    const cache = msg.reactions.cache
-    const uniqueReactions = cache.reduce((prev, current) => {
-        const userWhoReactedId = current.client.user.id
-        return !prev.userIds.includes(userWhoReactedId)
-            ? { userIds: [...prev.userIds, userWhoReactedId], total: prev.total + 1 }
-            : prev
-    }, { userIds: [], total: 0 })
+        const reactions = msg.reactions.cache.reduce((prev, current) => {
+            const userWhoReactedId = current.client.user.id
+            return !prev.userIds.includes(userWhoReactedId)
+                ? { userIds: [...prev.userIds, userWhoReactedId], total: prev.total + 1, totalNonUnique: prev.totalNonUnique + 1 }
+                : { ...prev, totalNonUnique: prev.totalNonUnique + 1 }
+        }, { userIds: [], totalUnique: 0, totalNonUnique: 0 })
 
-    if (uniqueReactions.total >= 5) {
-        // Copy msg.attachments and move them to "best of" channel
-    }
+        if (reactions.totalUnique >= 5 || reactions.totalNonUnique >= 5) {
+            HALL_OF_FAME_CHANNEL.send({
+                content: `<@${msg.author.id}>'s meme was worthy! {${msg.id}}`,
+                files: Array.from(msg.attachments.values()),
+            })
+        }
+    })
 })
 
 /** Startup */
