@@ -8,9 +8,6 @@
   "engines": {
     "node": "16.x"
   },
-  "scripts": {
-    "start": "node main.js"
-  },
   "dependencies": {
     "discord.js": "^13.6.0"
   },

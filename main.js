@@ -1,5 +1,5 @@
 /** Package for environment variables usage in local testing, uncomment when running locally */
-// require('dotenv').config()
+require('dotenv').config()
 
 /** Discord client */
 const { Client, Intents } = require("discord.js")
@@ -42,7 +42,7 @@ client.on("ready", async () => {
     client.on('messageReactionAdd', async reaction => {
         if (reaction.partial) {
             try {
-                await reaction.fetch()
+                await reaction.fetch() // Fetch and cache reaction object
             } catch (error) {
                 console.error('Something went wrong when fetching the message:', error)
 
@@ -58,19 +58,23 @@ client.on("ready", async () => {
             ASCENDED_MESSAGE_IDS.includes(msg.id)
         ) return
 
-        const reactions = msg.reactions.cache.reduce((prev, current) => {
-            const userWhoReactedId = current.client.user.id
-            return !prev.userIds.includes(userWhoReactedId)
-                ? { userIds: [...prev.userIds, userWhoReactedId], total: prev.total + 1, totalNonUnique: prev.totalNonUnique + 1 }
-                : { ...prev, totalNonUnique: prev.totalNonUnique + 1 }
-        }, { userIds: [], totalUnique: 0, totalNonUnique: 0 })
-
-        if (reactions.totalUnique >= 5) {
-            HALL_OF_FAME_CHANNEL.send({
-                content: `<@${msg.author.id}>'s meme was worthy! {${msg.id}}`,
-                files: Array.from(msg.attachments.values()),
+        // Async get unique users that reacted to this message and output message if there were more than 5 unique reactors
+        const currentUserIds = []
+        await Promise.allSettled(msg.reactions.cache.map(msgReaction => new Promise(resolve => {
+            msgReaction.users.fetch().then(users => {
+                users.forEach(({ id: userId }) => currentUserIds.push(userId))
+                resolve()
             })
-        }
+        })
+        )).then(() => {
+            const currentUniqueUserIds = Array.from(new Set(currentUserIds)) // Ensures unique user ids by converting array into a set, then back into a new array.
+            if (currentUniqueUserIds.length >= 5) {
+                HALL_OF_FAME_CHANNEL.send({
+                    content: `<@${msg.author.id}>'s meme was worthy! {${msg.id}}`,
+                    files: Array.from(msg.attachments.values()),
+                }).then(() => ASCENDED_MESSAGE_IDS.push(msg.id))
+            }
+        })
     })
 })
 
