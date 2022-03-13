@@ -1,5 +1,5 @@
 /** Package for environment variables usage in local testing, uncomment when running locally */
-require('dotenv').config()
+// require('dotenv').config()
 
 /** Discord client */
 const { Client, Intents } = require("discord.js")
