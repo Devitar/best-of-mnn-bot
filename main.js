@@ -65,7 +65,7 @@ client.on("ready", async () => {
                 : { ...prev, totalNonUnique: prev.totalNonUnique + 1 }
         }, { userIds: [], totalUnique: 0, totalNonUnique: 0 })
 
-        if (reactions.totalUnique >= 5 || reactions.totalNonUnique >= 5) {
+        if (reactions.totalUnique >= 5) {
             HALL_OF_FAME_CHANNEL.send({
                 content: `<@${msg.author.id}>'s meme was worthy! {${msg.id}}`,
                 files: Array.from(msg.attachments.values()),
