@@ -1,4 +1,4 @@
-/** Enables environment variables usage */
+/** Package for environment variables usage */
 require('dotenv').config()
 
 /** Discord client */
@@ -12,6 +12,12 @@ const client = new Client({
     ],
     partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
 })
+
+/** Constants */
+const LISTEN_TO_CHANNEL_IDS = [
+    202312233856925697, // Memes channel
+    619747193653297152, // Bot channel
+]
 
 /** Events */
 client.on("ready", () => {
@@ -30,6 +36,9 @@ client.on('messageReactionAdd', async reaction => {
     }
 
     const msg = reaction.message
+
+    if (!LISTEN_TO_CHANNEL_IDS.includes(msg.channelId)) return
+
     const cache = msg.reactions.cache
     const uniqueReactions = cache.reduce((prev, current) => {
         const userWhoReactedId = current.client.user.id
