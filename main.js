@@ -70,7 +70,7 @@ client.on("ready", async () => {
             const currentUniqueUserIds = Array.from(new Set(currentUserIds)) // Ensures unique user ids by converting array into a set, then back into a new array.
             if (currentUniqueUserIds.length >= 5) {
                 HALL_OF_FAME_CHANNEL.send({
-                    content: `<@${msg.author.id}>'s meme was worthy! \n "${msg.content}" \n {${msg.id}}`,
+                    content: `<@${msg.author.id}>'s meme was worthy! \n ${msg.content ? `"${msg.content}"` : ""} \n {${msg.id}}`,
                     files: Array.from(msg.attachments.values()),
                 }).then(() => ASCENDED_MESSAGE_IDS.push(msg.id))
             }
